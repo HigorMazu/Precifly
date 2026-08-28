@@ -1,0 +1,248 @@
+// Prisma schema para Precify
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------
+// Enums
+// ------------------------------------
+enum AlertType {
+  PRICE_BELOW
+  PERCENT_DROP
+  SCORE_ABOVE
+}
+
+enum NotificationType {
+  PRICE_ALERT
+  SCORE_ALERT
+  SYSTEM
+}
+
+// ------------------------------------
+// Users & Auth
+// ------------------------------------
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  wishlist      Wishlist?
+  alerts        PriceAlert[]
+  notifications Notification[]
+  searchHistory SearchHistory[]
+
+  @@index([email])
+}
+
+// ------------------------------------
+// Stores & Categories
+// ------------------------------------
+model Store {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  logoUrl   String?
+  website   String?
+  createdAt DateTime @default(now())
+
+  offers       Offer[]
+  priceHistory PriceHistory[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  parentId  String?
+  parent    Category? @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryToCategory")
+  createdAt DateTime @default(now())
+
+  products Product[]
+
+  @@index([slug])
+  @@index([parentId])
+}
+
+// ------------------------------------
+// Products
+// ------------------------------------
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @db.Text
+  imageUrl    String?
+  brand       String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  specs        ProductSpec[]
+  offers       Offer[]
+  priceHistory PriceHistory[]
+  reviews      Review[]
+  reviewInsight ReviewInsight?
+  wishlistItems WishlistItem[]
+  alerts        PriceAlert[]
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([brand])
+}
+
+model ProductSpec {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  key       String
+  value     String
+
+  @@unique([productId, key])
+  @@index([productId])
+}
+
+model Offer {
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  storeId      String
+  store        Store    @relation(fields: [storeId], references: [id])
+  price        Decimal  @db.Decimal(10, 2)
+  url          String
+  availability Boolean  @default(true)
+  collectedAt  DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@unique([productId, storeId])
+  @@index([productId])
+  @@index([storeId])
+  @@index([price])
+}
+
+model PriceHistory {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  storeId    String?
+  store      Store?   @relation(fields: [storeId], references: [id])
+  price      Decimal  @db.Decimal(10, 2)
+  recordedAt DateTime @default(now())
+
+  @@index([productId, recordedAt])
+  @@index([productId])
+  @@index([storeId])
+}
+
+// ------------------------------------
+// Reviews
+// ------------------------------------
+model Review {
+  id               String   @id @default(cuid())
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating           Int      // 1-5
+  title            String?
+  content          String   @db.Text
+  authorName       String
+  verifiedPurchase Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  @@index([productId])
+  @@index([rating])
+}
+
+model ReviewInsight {
+  id              String   @id @default(cuid())
+  productId       String   @unique
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  positiveThemes  String[] // ex: ["Bateria excelente", "Entrega rápida"]
+  negativeThemes  String[] // ex: ["Microfone fraco"]
+  sentimentScore  Float    // -1 a 1
+  summary         String   @db.Text
+  reviewCount     Int
+  avgRating       Float
+  distribution    Json     // {1: 10, 2: 5, 3:20, 4:100, 5:300}
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ------------------------------------
+// Wishlist
+// ------------------------------------
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlistId String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  targetPrice Decimal? @db.Decimal(10, 2)
+  addedAt    DateTime @default(now())
+
+  @@unique([wishlistId, productId])
+  @@index([productId])
+}
+
+// ------------------------------------
+// Alerts & Notifications
+// ------------------------------------
+model PriceAlert {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      AlertType
+  threshold Decimal   @db.Decimal(10, 2) // preço alvo ou score ou percent
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([productId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+}
+
+// ------------------------------------
+// Search History
+// ------------------------------------
+model SearchHistory {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  query     String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([query])
+}
