@@ -55,6 +55,17 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Banner produtos reais */}
+      <section className="mt-6 rounded-3xl bg-emerald-600 p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-black">🛒 Agora com produtos REAIS para comprar de verdade!</h2>
+          <p className="text-emerald-100 mt-1 text-sm">Busque por &quot;placa de vídeo&quot;, &quot;iphone&quot;, &quot;kabum&quot; e veja ofertas verdadeiras do Mercado Livre com link direto para compra.</p>
+        </div>
+        <Link href="/search?mode=real&q=iphone" className="rounded-full bg-white text-emerald-700 px-6 py-3 font-black hover:bg-zinc-100 whitespace-nowrap">
+          Ver ofertas reais →
+        </Link>
+      </section>
+
       {/* Como funciona */}
       <section className="mt-10 grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
         {[

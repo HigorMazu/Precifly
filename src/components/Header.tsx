@@ -27,7 +27,7 @@ export default function Header() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (q.trim()) window.location.href = `/search?q=${encodeURIComponent(q)}`;
+              if (q.trim()) window.location.href = `/search?mode=real&q=${encodeURIComponent(q)}`;
             }}
             className="flex-1 max-w-xl hidden md:flex items-center"
           >
@@ -35,13 +35,13 @@ export default function Header() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Buscar produtos, marcas, categorias..."
+                placeholder="Buscar produtos reais para comprar..."
                 className="w-full rounded-full border border-zinc-300 bg-zinc-50 py-2.5 pl-11 pr-4 text-sm placeholder:text-zinc-500 focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20"
               />
               <span className="absolute left-4 top-2.5 text-zinc-400">⌕</span>
             </div>
-            <button type="submit" className="ml-2 rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-800">
-              Buscar
+            <button type="submit" className="ml-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700">
+              Buscar real
             </button>
           </form>
 
@@ -71,17 +71,17 @@ export default function Header() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (q.trim()) window.location.href = `/search?q=${encodeURIComponent(q)}`;
+            if (q.trim()) window.location.href = `/search?mode=real&q=${encodeURIComponent(q)}`;
           }}
           className="md:hidden pb-3 flex gap-2"
         >
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar produtos..."
+            placeholder="Buscar para comprar de verdade..."
             className="flex-1 rounded-full border border-zinc-300 bg-zinc-50 px-4 py-2 text-sm focus:border-violet-500 focus:outline-none"
           />
-          <button className="rounded-full bg-zinc-900 px-4 py-2 text-sm text-white">Buscar</button>
+          <button className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold text-white">Buscar</button>
         </form>
       </div>
     </header>

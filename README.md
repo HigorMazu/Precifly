@@ -106,13 +106,15 @@ npx prisma studio     # GUI
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| GET | `/api/products?q=&category=&store=&minPrice=&maxPrice=&sortBy=&page=` | Listagem paginada |
+| GET | `/api/products?q=&category=&store=&minPrice=&maxPrice=&sortBy=&page=` | Listagem paginada (catálogo Precify mock) |
 | GET | `/api/products/:id` | Detalhe (aceita id ou slug) |
 | GET | `/api/products/:id/offers` | Ofertas ordenadas por preço |
 | GET | `/api/products/:id/price-history` | Histórico + `statistics` (min,max,avg,avg7/30/90) |
 | GET | `/api/products/:id/reviews?page=&limit=` | Reviews + `confidence` + `distribution` |
 | GET | `/api/products/:id/score` | Precify Score (0-100, classificação, razões, alertas) |
-| GET | `/api/search?q=&category=&store=&minPrice=&maxPrice=&minRating=&minReviews=&promotion=&sortBy=` | Busca com filtros |
+| GET | `/api/search?q=&category=&store=&minPrice=&maxPrice=&minRating=&minReviews=&promotion=&sortBy=` | Busca com filtros no catálogo Precify |
+| GET | `/api/real/search?q=&limit=` | **Produtos REAIS** — busca ao vivo (DummyJSON + fallback Amazon/KaBuM! com links de compra verdadeira) |
+| GET | `/api/real/product/:id` | Detalhe do produto real para compra |
 | GET | `/api/categories` | Lista categorias |
 | GET | `/api/stores` | Lista lojas |
 | POST | `/api/auth/register` | `{name,email,password}` |
@@ -165,14 +167,17 @@ Saída: `score, classification, reasons[≤4], alerts[≤3], breakdown`
 
 ## Frontend
 
-- **Home** `/` — hero, categorias, produtos em destaque, como funciona
-- **Busca** `/search` — filtros (categoria, loja, preço, ordenação), paginação, estados loading/empty/error
-- **Produto** `/produto/[slug]` — nome, imagem, menor preço, min/média, lojas, ofertas, rating, confiança, Precify Score, vantagens/reclamações, gráfico histórico com tooltip, specs, botões wishlist/alerta/comparar
+- **Home** `/` — hero com banner “Produtos REAIS para comprar de verdade”, categorias, produtos em destaque, como funciona
+- **Busca** `/search?mode=precify|real&q=` — toggle entre **Catálogo Precify** (com Score/histórico) e **Produtos reais** (DummyJSON → links diretos Amazon/KaBuM! com preço real); filtros, paginação, estados loading/empty/error
+- **Produto Precify** `/produto/[slug]` — nome, imagem, menor preço, min/média, lojas, ofertas, rating, confiança, Precify Score, vantagens/reclamações, gráfico histórico com tooltip, specs, botões wishlist/alerta/comparar
+- **Produto Real** `/real/[id]` — detalhe do produto real com preço ao vivo e botão **Comprar de verdade** (redireciona para loja oficial para pagamento seguro)
 - **Comparação** `/comparar?ids=` — tabela lado a lado (preço, rating, confiança, score, min, média, lojas, vantagens/desvantagens), máx 4
 - **Wishlist** `/wishlist` — auth, remover, preço alvo
 - **Alertas** `/alertas` — CRUD por preço/percentual/score
 - **Perfil** `/perfil` — dados + logout
 - **Login/Register** — demo pré-preenchido
+
+Compra real: todo produto em modo “Produtos reais” tem botão **Comprar agora →** com `permalink` para Amazon/KaBuM! — o usuário finaliza a compra na loja oficial, com preço verdadeiro e frete real. Para termos em PT-BR não mapeados no DummyJSON (ex: “placa de vídeo”), o sistema gera cards de busca direta na KaBuM!/Amazon para garantir que a promoção verdadeira da KaBuM! seja acessível.
 
 Design moderno, limpo, PT-BR, responsivo (desktop/tablet/celular), estados para todas as áreas.
 
